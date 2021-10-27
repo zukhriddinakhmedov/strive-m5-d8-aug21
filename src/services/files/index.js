@@ -6,6 +6,7 @@ import { pipeline } from "stream"
 import { createGzip } from "zlib"
 
 import { getBooksReadableStream } from "../../lib/fs-tools.js"
+import { getPDFReadableStream } from "../../lib/pdf-tools.js"
 
 const cloudinaryStorage = new CloudinaryStorage({
   cloudinary, // CREDENTIALS, this line of code is going to search in your process.env for something called CLOUDINARY_URL
@@ -63,6 +64,21 @@ filesRouter.get("/downloadJSON", async (req, res, next) => {
     const destination = res
 
     pipeline(source, transform, destination, err => {
+      if (err) next(err)
+    })
+  } catch (error) {
+    next(error)
+  }
+})
+
+filesRouter.get("/downloadPDF", (req, res, next) => {
+  try {
+    res.setHeader("Content-Disposition", "attachment; filename=whatever.pdf") // This header tells the browser to do not open the file, but to download it
+
+    const source = getPDFReadableStream({ firstName: "Zee" }) // PDF READABLE STREAM
+    const destination = res
+
+    pipeline(source, destination, err => {
       if (err) next(err)
     })
   } catch (error) {
